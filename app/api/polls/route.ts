@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
 import { closePoll, createPoll, deletePoll, listPollsForUser, votePoll } from "@/services/polls"
-import { fallbackPoll, fallbackPolls } from "@/lib/fallbacks"
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(polls)
   } catch (error) {
     console.error("Get polls error:", error)
-    return NextResponse.json(fallbackPolls(), { status: 200 })
+    return NextResponse.json({ error: "Failed to fetch polls" }, { status: 500 })
   }
 }
 
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ poll })
   } catch (error) {
     console.error("Create poll error:", error)
-    return NextResponse.json({ fallback: true, poll: fallbackPoll() }, { status: 200 })
+    return NextResponse.json({ error: "Failed to create poll" }, { status: 500 })
   }
 }
 
@@ -72,7 +71,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
     console.error("Update poll error:", error)
-    return NextResponse.json({ fallback: true, poll: fallbackPoll() }, { status: 200 })
+    return NextResponse.json({ error: "Failed to update poll" }, { status: 500 })
   }
 }
 
@@ -95,6 +94,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error("Delete poll error:", error)
-    return NextResponse.json({ fallback: true, success: true }, { status: 200 })
+    return NextResponse.json({ error: "Failed to delete poll" }, { status: 500 })
   }
 }

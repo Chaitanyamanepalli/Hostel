@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, Clock, Vote, Calendar, Loader2, Users } from "lucide-react"
 
 interface PollVoter {
@@ -124,8 +125,33 @@ export default function StudentPollsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        {[...Array(3)].map((_, idx) => (
+          <Card key={idx}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+                <Skeleton className="h-6 w-16" />
+              </div>
+              <div className="flex items-center gap-4 mt-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[...Array(3)].map((__, optIdx) => (
+                <div key={optIdx} className="space-y-2">
+                  <Skeleton className="h-4 w-56" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              ))}
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }

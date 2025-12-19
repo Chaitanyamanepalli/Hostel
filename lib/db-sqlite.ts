@@ -48,7 +48,7 @@ function initDatabase() {
       description TEXT NOT NULL,
       category TEXT NOT NULL,
       priority TEXT CHECK(priority IN ('low', 'medium', 'high')) NOT NULL,
-      status TEXT CHECK(status IN ('pending', 'in-progress', 'resolved', 'closed')) DEFAULT 'pending',
+      status TEXT CHECK(status IN ('open', 'in-progress', 'resolved', 'closed')) DEFAULT 'open',
       student_id TEXT NOT NULL,
       hostel_id TEXT NOT NULL,
       assigned_to TEXT,
@@ -171,7 +171,7 @@ export interface DbIssue {
   description: string
   category: string
   priority: "low" | "medium" | "high"
-  status: "pending" | "in-progress" | "resolved" | "closed"
+  status: "open" | "in-progress" | "resolved" | "closed"
   student_id: string
   hostel_id: string
   assigned_to: string | null

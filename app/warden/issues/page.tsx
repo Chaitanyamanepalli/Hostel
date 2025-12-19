@@ -90,17 +90,29 @@ export default function WardenIssuesPage() {
         // Fetch warden's hostel
         const hostelsRes = await fetch("/api/hostels")
         if (hostelsRes.ok) {
-          const hostels = await hostelsRes.json()
+          const hostelsPayload = await hostelsRes.json()
+          const hostels: Hostel[] = Array.isArray(hostelsPayload)
+            ? hostelsPayload
+            : Array.isArray(hostelsPayload?.hostels)
+              ? hostelsPayload.hostels
+              : []
           const wardenHostel = hostels.find((h: Hostel) => h.warden_id === user?.id)
-          setHostel(wardenHostel)
+          setHostel(wardenHostel ?? null)
 
           if (wardenHostel) {
             // Fetch issues
             const issuesRes = await fetch("/api/issues")
             if (issuesRes.ok) {
-              const allIssues = await issuesRes.json()
+              const issuesPayload = await issuesRes.json()
+              const allIssues: Issue[] = Array.isArray(issuesPayload)
+                ? issuesPayload
+                : Array.isArray(issuesPayload?.issues)
+                  ? issuesPayload.issues
+                  : []
               setIssues(allIssues.filter((i: Issue) => i.hostel_id === wardenHostel.id))
             }
+          } else {
+            setIssues([])
           }
         }
       } catch (error) {

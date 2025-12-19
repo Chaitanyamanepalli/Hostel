@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { fallbackPollVoteResult } from "@/lib/fallbacks"
 import { randomUUID } from "crypto"
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -47,6 +46,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: true, message: "Vote recorded successfully" })
   } catch (error) {
     console.error("Vote error:", error)
-    return NextResponse.json(fallbackPollVoteResult(), { status: 200 })
+    return NextResponse.json({ error: "Failed to record vote" }, { status: 500 })
   }
 }

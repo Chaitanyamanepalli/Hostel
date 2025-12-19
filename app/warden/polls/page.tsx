@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, Clock, Vote, Calendar, Plus, Users, Eye, Trash2, Loader2 } from "lucide-react"
 
 interface PollVoter {
@@ -76,14 +77,21 @@ export default function WardenPollsPage() {
         const res = await fetch("/api/polls")
         if (res.ok) {
           const payload = await res.json()
-          const incoming: Poll[] = payload.polls ?? payload
+          const incoming: Poll[] = Array.isArray(payload) ? payload : payload.polls ?? []
           // Filter by warden's hostel
           const hostelRes = await fetch("/api/hostels")
           if (hostelRes.ok) {
-            const hostels = await hostelRes.json()
+            const hostelsPayload = await hostelRes.json()
+            const hostels: Hostel[] = Array.isArray(hostelsPayload)
+              ? hostelsPayload
+              : Array.isArray(hostelsPayload?.hostels)
+                ? hostelsPayload.hostels
+                : []
             const wardenHostel = hostels.find((h: Hostel) => h.warden_id === user?.id)
             if (wardenHostel) {
               setPolls(incoming.filter((p: Poll) => p.hostel_id === wardenHostel.id))
+            } else {
+              setPolls([])
             }
           }
         }
@@ -101,8 +109,31 @@ export default function WardenPollsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        {[...Array(4)].map((_, idx) => (
+          <Card key={idx} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-56" />
+                </div>
+                <Skeleton className="h-6 w-14" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-2 w-full" />
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-10" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }

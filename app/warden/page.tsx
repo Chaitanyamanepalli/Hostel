@@ -65,24 +65,42 @@ export default function WardenDashboard() {
         // Fetch warden's hostel
         const hostelsRes = await fetch("/api/hostels")
         if (hostelsRes.ok) {
-          const hostels = await hostelsRes.json()
+          const hostelsPayload = await hostelsRes.json()
+          const hostels: Hostel[] = Array.isArray(hostelsPayload)
+            ? hostelsPayload
+            : Array.isArray(hostelsPayload?.hostels)
+              ? hostelsPayload.hostels
+              : []
           const wardenHostel = hostels.find((h: Hostel) => h.warden_id === user?.id)
-          setHostel(wardenHostel)
+          setHostel(wardenHostel ?? null)
 
           if (wardenHostel) {
             // Fetch issues for hostel
             const issuesRes = await fetch("/api/issues")
             if (issuesRes.ok) {
-              const issues = await issuesRes.json()
+              const issuesPayload = await issuesRes.json()
+              const issues: Issue[] = Array.isArray(issuesPayload)
+                ? issuesPayload
+                : Array.isArray(issuesPayload?.issues)
+                  ? issuesPayload.issues
+                  : []
               setHostelIssues(issues.filter((i: Issue) => i.hostel_id === wardenHostel.id))
             }
 
             // Fetch active polls
             const pollsRes = await fetch("/api/polls")
             if (pollsRes.ok) {
-              const polls = await pollsRes.json()
+              const pollsPayload = await pollsRes.json()
+              const polls: Poll[] = Array.isArray(pollsPayload)
+                ? pollsPayload
+                : Array.isArray(pollsPayload?.polls)
+                  ? pollsPayload.polls
+                  : []
               setActivePolls(polls.filter((p: Poll) => p.hostel_id === wardenHostel.id && p.status === "active"))
             }
+          } else {
+            setHostelIssues([])
+            setActivePolls([])
           }
         }
       } catch (error) {
@@ -135,6 +153,7 @@ export default function WardenDashboard() {
       color: "var(--chart-4)",
     },
   ]
+    const hasCategoryData = categoryData.some((item) => item.count > 0)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -246,25 +265,31 @@ export default function WardenDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} layout="vertical" margin={{ left: 0, right: 20 }}>
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} axisLine={false} />
-                  <Tooltip
-                    cursor={{ fill: "hsl(var(--muted))" }}
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {hasCategoryData ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryData} layout="vertical" margin={{ left: 0, right: 20 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} axisLine={false} />
+                    <Tooltip
+                      cursor={{ fill: "hsl(var(--muted))" }}
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+                  No issues reported yet.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -17,7 +17,7 @@ async function seed() {
     "North Wing Hostel",
     200,
     150,
-    JSON.stringify(["WiFi", "Gym", "Mess", "Library", "Common Room"])
+    JSON.stringify(["WiFi", "Gym", "Mess", "Library", "Common Room", "Music Room", "Study Pods"])
   )
 
   db.prepare(`INSERT INTO hostels (id, name, capacity, occupied, facilities) VALUES (?, ?, ?, ?, ?)`).run(
@@ -25,7 +25,7 @@ async function seed() {
     "South Wing Hostel",
     180,
     120,
-    JSON.stringify(["WiFi", "Mess", "Sports Room", "Library"])
+    JSON.stringify(["WiFi", "Mess", "Sports Room", "Library", "Makers Lab", "Meditation Room"])
   )
 
   db.prepare(`INSERT INTO hostels (id, name, capacity, occupied, facilities) VALUES (?, ?, ?, ?, ?)`).run(
@@ -33,7 +33,7 @@ async function seed() {
     "East Block Hostel",
     150,
     100,
-    JSON.stringify(["WiFi", "Mess", "Study Hall"])
+    JSON.stringify(["WiFi", "Mess", "Study Hall", "Game Zone", "Laundry Hub"])
   )
 
   console.log("✓ Hostels created")
@@ -106,7 +106,44 @@ async function seed() {
     "9876500002"
   )
 
-  console.log("✓ Users created (admin, 2 wardens, 3 students)")
+  // Extra students for richer data
+  const student4Id = randomUUID()
+  db.prepare(`INSERT INTO users (id, email, password_hash, name, role, hostel_id, room_number, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    student4Id,
+    "student4@hostel.com",
+    password,
+    "Dinesh Student",
+    "student",
+    hostelIds.northWing,
+    "108",
+    "9876500003"
+  )
+
+  const student5Id = randomUUID()
+  db.prepare(`INSERT INTO users (id, email, password_hash, name, role, hostel_id, room_number, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    student5Id,
+    "student5@hostel.com",
+    password,
+    "Elena Student",
+    "student",
+    hostelIds.southWing,
+    "215",
+    "9876500004"
+  )
+
+  const student6Id = randomUUID()
+  db.prepare(`INSERT INTO users (id, email, password_hash, name, role, hostel_id, room_number, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    student6Id,
+    "student6@hostel.com",
+    password,
+    "Farah Student",
+    "student",
+    hostelIds.eastBlock,
+    "318",
+    "9876500005"
+  )
+
+  console.log("✓ Users created (admin, 2 wardens, 6 students)")
   console.log("  Admin: admin@hostel.com")
   console.log("  Wardens: warden@hostel.com, warden.south@hostel.com")
   console.log("  Students: student@hostel.com, student2@hostel.com, student3@hostel.com")
@@ -122,9 +159,9 @@ async function seed() {
     issueId1,
     "Broken Window in Room 101",
     "The window in my room is broken and needs repair",
-    "Maintenance",
+    "electrical",
     "high",
-    "pending",
+    "open",
     studentId,
     hostelIds.northWing
   )
@@ -134,7 +171,7 @@ async function seed() {
     issueId2,
     "WiFi Not Working",
     "WiFi connection is very slow in the common area",
-    "Connectivity",
+    "electrical",
     "medium",
     "in-progress",
     studentId,
@@ -147,9 +184,9 @@ async function seed() {
     issueId3,
     "Hot Water Not Available",
     "No hot water in bathrooms during morning hours",
-    "Utilities",
+    "plumbing",
     "medium",
-    "pending",
+    "open",
     student2Id,
     hostelIds.southWing,
     wardenSouthId
@@ -160,19 +197,57 @@ async function seed() {
     issueId4,
     "Mess Food Quality",
     "Food quality has dropped this week. Please check vendors.",
-    "Mess",
+    "other",
     "low",
-    "pending",
+    "open",
     student3Id,
     hostelIds.eastBlock
+  )
+
+  // Additional issues for richer graphs
+  const issueId5 = randomUUID()
+  db.prepare(`INSERT INTO issues (id, title, description, category, priority, status, student_id, hostel_id, assigned_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    issueId5,
+    "Broken Chair in Study Hall",
+    "Several chairs are unstable and need replacement",
+    "furniture",
+    "medium",
+    "open",
+    student6Id,
+    hostelIds.eastBlock,
+    null
+  )
+
+  const issueId6 = randomUUID()
+  db.prepare(`INSERT INTO issues (id, title, description, category, priority, status, student_id, hostel_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    issueId6,
+    "Hallway lights flicker",
+    "Lights on the 2nd floor hallway flicker intermittently",
+    "electrical",
+    "low",
+    "open",
+    student4Id,
+    hostelIds.northWing
+  )
+
+  const issueId7 = randomUUID()
+  db.prepare(`INSERT INTO issues (id, title, description, category, priority, status, student_id, hostel_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    issueId7,
+    "Leaky tap in bathroom",
+    "Persistent leak causing water pooling",
+    "plumbing",
+    "medium",
+    "open",
+    student5Id,
+    hostelIds.southWing
   )
 
   console.log("✓ Sample issues created")
 
   // Create sample poll
   const pollId = randomUUID()
-  const options = JSON.stringify(["Extend mess hours", "Add new gym equipment", "Improve WiFi"])
-  const votes = JSON.stringify([12, 8, 15])
+  const options = JSON.stringify(["Extend mess hours", "Add new gym equipment", "Improve WiFi", "Add quiet pods"])
+  const votes = JSON.stringify([12, 8, 15, 5])
 
   db.prepare(`INSERT INTO polls (id, title, description, options, votes, created_by, hostel_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
     pollId,
@@ -186,8 +261,8 @@ async function seed() {
   )
 
   const poll2Id = randomUUID()
-  const options2 = JSON.stringify(["New water coolers", "Additional washers", "Extend quiet hours"])
-  const votes2 = JSON.stringify([5, 7, 3])
+  const options2 = JSON.stringify(["New water coolers", "Additional washers", "Extend quiet hours", "Yoga mats"])
+  const votes2 = JSON.stringify([5, 7, 3, 4])
 
   db.prepare(`INSERT INTO polls (id, title, description, options, votes, created_by, hostel_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
     poll2Id,

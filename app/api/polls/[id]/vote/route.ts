@@ -12,7 +12,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { optionIndex } = await request.json()
+    const body = await request.json()
+    const optionIndex = body.optionIndex ?? body.optionId
 
     if (optionIndex === undefined) {
       return NextResponse.json({ error: "Option index is required" }, { status: 400 })

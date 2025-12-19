@@ -82,7 +82,7 @@ export default function AdminDashboard() {
 
         if (pollsRes.ok) {
           const data = await pollsRes.json()
-          setPolls(data.polls || [])
+          setPolls((data as any).polls || (Array.isArray(data) ? data : []))
         }
       } catch (error) {
         console.error("Error fetching admin data:", error)

@@ -2,29 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { fallbackPoll, fallbackPollUpdate } from "@/lib/fallbacks"
-
-function mapPoll(row: any) {
-  const optionsArr = safeJsonArray(row?.options)
-  const votesArr = safeJsonArray(row?.votes)
-
-  const mergedOptions = optionsArr.map((opt, idx) => ({
-    id: String(idx),
-    option_text: opt,
-    votes: Number(votesArr[idx] ?? 0),
-  }))
-
-  return { ...row, options: mergedOptions }
-}
-
-function safeJsonArray(value: unknown): any[] {
-  if (!value || typeof value !== "string") return []
-  try {
-    const parsed = JSON.parse(value)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
+import { getPollByIdWithProfiles } from "@/services/polls"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -34,13 +12,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const result = db.prepare(`SELECT * FROM polls WHERE id = ?`).get(id)
+    const result = getPollByIdWithProfiles(id)
 
     if (!result) {
       return NextResponse.json({ error: "Poll not found" }, { status: 404 })
     }
 
-    return NextResponse.json(mapPoll(result))
+    return NextResponse.json(result)
   } catch (error) {
     console.error("Get poll error:", error)
     return NextResponse.json({ fallback: true, poll: fallbackPoll((await params).id) }, { status: 200 })
@@ -65,13 +43,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       WHERE id = ?
     `).run(status, ends_at, id)
 
-    const result = db.prepare(`SELECT * FROM polls WHERE id = ?`).get(id)
+    const result = getPollByIdWithProfiles(id)
 
     if (!result) {
       return NextResponse.json({ error: "Poll not found" }, { status: 404 })
     }
 
-    return NextResponse.json(mapPoll(result))
+    return NextResponse.json(result)
   } catch (error) {
     console.error("Update poll error:", error)
     return NextResponse.json({ fallback: true, poll: fallbackPollUpdate((await params).id) }, { status: 200 })

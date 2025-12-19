@@ -29,10 +29,19 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { CheckCircle2, Clock, Vote, Calendar, Plus, Users, Eye, Trash2, Loader2 } from "lucide-react"
 
+interface PollVoter {
+  id: string
+  name: string
+  role: string
+  avatar_url?: string | null
+  hostel_id?: string | null
+}
+
 interface PollOption {
   id: string
   option_text: string
   votes: number
+  voters?: PollVoter[]
 }
 
 interface Poll {
@@ -66,14 +75,15 @@ export default function WardenPollsPage() {
       try {
         const res = await fetch("/api/polls")
         if (res.ok) {
-          const data = await res.json()
+          const payload = await res.json()
+          const incoming: Poll[] = payload.polls ?? payload
           // Filter by warden's hostel
           const hostelRes = await fetch("/api/hostels")
           if (hostelRes.ok) {
             const hostels = await hostelRes.json()
             const wardenHostel = hostels.find((h: Hostel) => h.warden_id === user?.id)
             if (wardenHostel) {
-              setPolls(data.filter((p: Poll) => p.hostel_id === wardenHostel.id))
+              setPolls(incoming.filter((p: Poll) => p.hostel_id === wardenHostel.id))
             }
           }
         }
@@ -298,10 +308,9 @@ export default function WardenPollsPage() {
                   <p className="text-sm font-medium">Results</p>
                   {selectedPoll.options.map((option) => {
                     const totalVotes = selectedPoll.total_votes || selectedPoll.options.reduce((sum, opt) => sum + opt.votes, 0)
-                    const percentage =
-                      totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0
+                    const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0
                     return (
-                      <div key={option.id} className="space-y-1">
+                      <div key={option.id} className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span>{option.option_text}</span>
                           <span className="font-medium">
@@ -309,6 +318,17 @@ export default function WardenPollsPage() {
                           </span>
                         </div>
                         <Progress value={percentage} className="h-2" />
+                        {!!option.voters?.length && (
+                          <div className="rounded-md border bg-muted/40 p-2 space-y-1 text-xs">
+                            <p className="text-muted-foreground">Voters</p>
+                            {option.voters.map((voter) => (
+                              <div key={voter.id} className="flex items-center justify-between">
+                                <span className="font-medium">{voter.name || "Unnamed"}</span>
+                                <span className="text-muted-foreground">{voter.role}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )
                   })}

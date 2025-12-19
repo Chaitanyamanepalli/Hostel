@@ -45,6 +45,7 @@ export interface PollOption {
   id: string
   text: string
   votes: number
+  voters?: PollVoter[]
 }
 
 export interface Poll {
@@ -58,6 +59,14 @@ export interface Poll {
   start_date: Date
   end_date: Date
   total_votes: number
+}
+
+export interface PollVoter {
+  id: string
+  name: string
+  role: UserRole
+  avatar_url?: string | null
+  hostel_id?: string | null
 }
 
 // Hostel type

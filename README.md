@@ -19,6 +19,15 @@ npm run lint
 npx tsc --noEmit
 ```
 
+PNPM users:
+```sh
+pnpm install
+pnpm tsx scripts/seed-sqlite.ts
+pnpm dev
+pnpm lint
+pnpm tsc --noEmit
+```
+
 Environment:
 - `.env` already points to SQLite: `DATABASE_URL="sqlite://file:hostelflow.db"`
 - Backend Express (optional) uses `server/.env` -> `DATABASE_URL="sqlite://file:../hostelflow.db"`, `PORT=4000`
@@ -48,11 +57,12 @@ All API routes return structured fallback data (with `fallback: true`) if the da
 - Users (admin): `GET/POST/PATCH/DELETE /api/users`
 - Hostels (admin): `GET/POST/PATCH/DELETE /api/hostels`
 - Issues: role-scoped `GET /api/issues`; students `POST /api/issues`; warden/admin `PATCH /api/issues`
-- Polls: `GET /api/polls`; warden/admin `POST` create, `PATCH` close; students `PATCH` vote; warden/admin `DELETE`
+- Polls: `GET /api/polls` (returns array or `{ polls }` and includes `options[].voters`, `total_votes`); warden/admin `POST` create, `PATCH` close; students `PATCH` vote (accepts `optionId` or `optionIndex`); warden/admin `DELETE`
 - Notifications: `GET /api/notifications`, `PATCH /api/notifications`
 - Profile: `PATCH /api/profile`
 
 ## Notes
 - UI uses Radix primitives with accessibility fixes (dialogs/sheets now include hidden titles).
-- Poll options are normalized (option_text + votes) across API responses and fallbacks.
+- Poll UI: students can open a voter list per option; wardens see voters in the poll detail dialog.
+- Poll options are normalized (option_text + votes) across API responses and fallbacks; totals are included.
 - Express backend in `server/` is optional; the Next.js API routes cover all functionality for local use.

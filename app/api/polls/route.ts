@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
 
     const polls = await listPollsForUser(user)
 
-    return NextResponse.json({ polls })
+    return NextResponse.json(polls)
   } catch (error) {
     console.error("Get polls error:", error)
-    return NextResponse.json({ fallback: true, polls: fallbackPolls() }, { status: 200 })
+    return NextResponse.json(fallbackPolls(), { status: 200 })
   }
 }
 
@@ -26,7 +26,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { question, description, options, endsAt, hostelId } = await request.json()
+    const payload = await request.json()
+    const question = payload.question
+    const description = payload.description
+    const options = payload.options
+    const endsAt = payload.endsAt ?? payload.ends_at
+    const hostelId = payload.hostelId ?? payload.hostel_id
 
     const poll = await createPoll(user, { question, description, options, endsAt, hostelId })
 

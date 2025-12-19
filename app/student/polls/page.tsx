@@ -9,12 +9,28 @@ import { Progress } from "@/components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle2, Clock, Vote, Calendar, Loader2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { CheckCircle2, Clock, Vote, Calendar, Loader2, Users } from "lucide-react"
+
+interface PollVoter {
+  id: string
+  name: string
+  role: string
+  avatar_url?: string | null
+  hostel_id?: string | null
+}
 
 interface PollOption {
   id: string
   option_text: string
   votes: number
+  voters?: PollVoter[]
 }
 
 interface Poll {
@@ -37,17 +53,24 @@ export default function StudentPollsPage() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [votedPolls, setVotedPolls] = useState<Set<string>>(new Set())
   const [votingPollId, setVotingPollId] = useState<string | null>(null)
+  const [voterDialog, setVoterDialog] = useState<{
+    pollId: string
+    optionId: string
+    optionText: string
+    voters: PollVoter[]
+  } | null>(null)
 
   useEffect(() => {
     const fetchPolls = async () => {
       try {
         const res = await fetch("/api/polls")
         if (res.ok) {
-          const data = await res.json()
+          const payload = await res.json()
+          const incoming: Poll[] = payload.polls ?? payload
           // Filter by user's hostel
           const hostelPolls = user?.hostel_id
-            ? data.filter((p: Poll) => p.hostel_id === user.hostel_id)
-            : data
+            ? incoming.filter((p: Poll) => p.hostel_id === user.hostel_id)
+            : incoming
           setPolls(hostelPolls)
         }
       } catch (error) {
@@ -79,10 +102,11 @@ export default function StudentPollsPage() {
         // Refresh poll data
         const pollRes = await fetch("/api/polls")
         if (pollRes.ok) {
-          const data = await pollRes.json()
+          const payload = await pollRes.json()
+          const incoming: Poll[] = payload.polls ?? payload
           const hostelPolls = user?.hostel_id
-            ? data.filter((p: Poll) => p.hostel_id === user.hostel_id)
-            : data
+            ? incoming.filter((p: Poll) => p.hostel_id === user.hostel_id)
+            : incoming
           setPolls(hostelPolls)
         }
       }
@@ -170,7 +194,25 @@ export default function StudentPollsPage() {
                       value={percentage}
                       className={`h-3 ${isWinning ? "[&>div]:bg-primary" : "[&>div]:bg-muted-foreground/30"}`}
                     />
-                    <p className="text-xs text-muted-foreground">{option.votes} votes</p>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{option.votes} votes</span>
+                      {!!option.voters?.length && (
+                        <button
+                          className="flex items-center gap-1 underline-offset-2 hover:underline"
+                          onClick={() =>
+                            setVoterDialog({
+                              pollId: poll.id,
+                              optionId: option.id,
+                              optionText: option.option_text,
+                              voters: option.voters ?? [],
+                            })
+                          }
+                        >
+                          <Users className="h-3 w-3" />
+                          View voters
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )
               })}
@@ -269,6 +311,34 @@ export default function StudentPollsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!voterDialog} onOpenChange={(open) => !open && setVoterDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Voters</DialogTitle>
+            {voterDialog?.optionText && (
+              <DialogDescription>
+                Option: <span className="font-medium text-foreground">{voterDialog.optionText}</span>
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {voterDialog?.voters?.length ? (
+              voterDialog.voters.map((voter) => (
+                <div key={voter.id} className="flex items-center justify-between text-sm border rounded-md px-3 py-2">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{voter.name || "Unnamed"}</span>
+                    <span className="text-xs text-muted-foreground">{voter.hostel_id || ""}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{voter.role}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No voters yet.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

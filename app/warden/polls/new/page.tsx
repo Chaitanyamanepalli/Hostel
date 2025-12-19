@@ -81,8 +81,8 @@ export default function NewPollPage() {
         body: JSON.stringify({
           question: formData.question,
           description: formData.description || null,
-          hostel_id: hostelId,
-          ends_at: new Date(formData.ends_at).toISOString(),
+          hostelId,
+          endsAt: new Date(formData.ends_at).toISOString(),
           options: validOptions,
         }),
       })
